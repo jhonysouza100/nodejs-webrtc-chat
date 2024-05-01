@@ -7,8 +7,10 @@ Aplicacion web de Chat en tiempo Real usando React y Socket.io, una biblioteca d
 ## Instalacion de dependencias
 
 ```bash
-npm i socket.io && npm i -D @types/socket.io
+npm i socket.io
 ```
+
+Nota: socket.io no nesesita `@types/socket.io` para typescript
 
 ## Importacion de Modulos
 
@@ -34,20 +36,19 @@ const io = new Server( server, {
 ## Websocket coneccion
 
 ```javascript
-io.on('connection', socket => {
+io.on('connection', (socket => {
 
-  console.log('Clien connected') // Client connected
-  console.log('socket id:', socket.id) // 1234
-  console.log('socket connected:', socket.connected) // true
-
+  console.log(`Client connected: ${socket.connected}, id: ${socket.id}`)
+  
   myFunction(socket)
-
+  
   socket.on('disconnect', () => {
-    console.log('Client disconnected') // clien Disconnected
-    console.log('socket id:', socket.id) // 1234
-    console.log('socket connected:', socket.connected) // false
+    
+    console.log(`Client connected: ${socket.connected}, id: ${socket.id}`)
+    
   })
-})
+
+}))
 ```
 
 ## WebRTC (Web Real Time Comunication)
@@ -55,9 +56,23 @@ io.on('connection', socket => {
 `/socket.io.ts`
 
 ```javascript
-import { Socket } from  'socket.io'
+import { Socket } from "socket.io";
 
-export const myFunction = (socket: Socket) => {
+export const webRTC = (socket: Socket) => {
+  
+  socket.on('message', (data) => {
+    
+    console.log(data)
+
+    // store message in database
+    
+    // send message to all clients
+    socket.broadcast.emit('message', {
+      body: data,
+      from: socket.id.slice(16)
+    })
+    
+  })
 
   socket.on('update-count', async ({count}: {count: number})) => {
 
@@ -65,7 +80,7 @@ export const myFunction = (socket: Socket) => {
 
     socket.emit('count-updated', count)
   }
-
+  
 }
 ```
 
@@ -89,3 +104,59 @@ import io  from 'socket.io-client'
 const socket = io('http://localhost:3000')
 
 ```
+
+## Coneccion del cliente
+
+`/hooks/useWebRTC.jsx`
+
+```javascript
+import { config } from './config'
+
+export const useWebConnection = () => {
+  
+  const socket = io(`${config.SOCKET} || http://localhost:3000`)
+
+  return socket
+  
+}
+```
+
+`/App.jsx`
+
+```javascript
+import Chat from "./components/Chat";
+import { useWebConnection } from "./hooks/useWebRTC";
+
+export default function App() {
+
+  const socket = useWebConnection()
+  
+  return (
+    <div className="h-screen bg-zinc-800 text-white flex items-center justify-center">
+      <Chat socket={socket} />
+    </div>
+  );
+}
+```
+
+## Run App
+
+```bash
+cd server && npm i
+cd client-app && npm i
+```
+
+> `/client-app` and `/server` folder
+
+```bash
+cd server && npm run dev
+cd client-app && npm run dev
+```
+
+Client A:
+
+![client-A](/image-1.jpg)
+
+Client B:
+
+![client-B](/image-2.jpg)
