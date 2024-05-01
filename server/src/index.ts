@@ -19,13 +19,13 @@ const io = new Server( server, {
 
 io.on('connection', (socket => {
 
-  console.log(`Client connected: ${socket.connected}`)
+  console.log(`Client connected: ${socket.connected}, id: ${socket.id}`)
   
   webRTC(socket)
-
+  
   socket.on('disconnect', () => {
-
-    console.log('Client connected:', socket.connected)
+    
+    console.log(`Client connected: ${socket.connected}, id: ${socket.id}`)
     
   })
 
