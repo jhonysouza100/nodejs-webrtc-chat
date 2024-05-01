@@ -29,6 +29,11 @@ export default function Form({socket}) {
     
     socket.emit('update-count')
     socket.on('count-updated', (data) => setCount(data))
+
+    fetch('http://localhost:3030/views')
+      .then(response => response.json())
+      .then(data => setCount(data.count))
+      .catch(error => console.error('Error fetching count:', error));
     
     socket.on('message', receiveMessage)  // actualiza desde el backend
     
